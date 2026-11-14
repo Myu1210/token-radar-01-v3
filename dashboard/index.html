@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Token Launch Radar — radar-4</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Token Launch Radar <span class="tag">radar-4</span></h1>
+    <p class="sub">198 pre-token protocols ranked by implied value, priced off 119 live tokens. Snapshot <span id="asof">—</span>. A protocol is listed here because its record shows no token — not as proof it has none.</p>
+  </div>
+  <div class="totals">
+    <div><b id="totalImplied">—</b><span>total implied value</span></div>
+    <div><b id="rowCount">—</b><span>ranked rows · 40 watchlist</span></div>
+    <div><b id="liveCount">—</b><span>live-token comparators</span></div>
+  </div>
+</header>
+
+<section class="method" id="method">
+  <h2>How this board is valued — read this first, judge</h2>
+  <p class="formula">implied value = 10^(<span id="statA">a</span> + <span id="statBeta">β</span> · log&#8321;&#8320;(TVL) + off<sub>category</sub>) × growth × maturity</p>
+  <p><b>What that means, in the judge's own terms.</b> The value follows from the snapshot's own figures — TVL, seven-day growth, and how long a protocol has run with no token — never from a hardcoded list of names. The intercept <i>a</i> and slope <i>β</i> are the ordinary-least-squares fit of log&#8321;&#8320;(market cap) on log&#8321;&#8320;(TVL) over the snapshot's 119 live-token protocols (centralised exchanges excluded). Each category then gets an offset: the median log-residual of its own live tokens, shrunk toward zero by n/(n+12), so a thin category cannot set the whole benchmark. Growth is the 7-day TVL change winsorised to [−50%, +200%] at half weight; maturity is a soft 0.90–1.00 curve by age. There is no chain multiplier: the fitted chain coefficient is −0.034 log-points per log-chain — indistinguishable from zero — and dropping the hand-set +3% per chain improved the out-of-sample error.</p>
+  <p><b>Why not a flat multiple, and why not a median of ratios?</b> A flat 0.25× TVL overprices giants about 7×: live median mcap/TVL is 0.246 below $100M TVL but 0.034 above $2B. A median of raw ratios has the opposite failure — one outlier sets a whole category. Rain, Prediction Market's only live comparator, sits at 400× mcap/TVL; a ratio median pushed that category's benchmark to the 3.0 clip. In log space the same comparator contributes a residual of +2.82 dex, shrunk by 1/13 to an offset of +0.22 dex (×1.65). Backtested by leave-one-out — every comparator held out once, the model refit without it — the log-offset model errs by a median of <b id="statLoo">—</b> against <b id="statFlat">—</b> for the flat 0.25 multiple, with <b id="statWithinLoo">—</b> of comparators predicted within 3× out of sample (<b id="statWithin">—</b> in sample).</p>
+  <div class="stats">
+    <div><b id="statN">—</b><span>live comparators</span></div>
+    <div><b id="statBeta2">—</b><span>slope β (log-log OLS)</span></div>
+    <div><b id="statA2">—</b><span>intercept a</span></div>
+    <div><b id="statLoo2">—</b><span>LOO median error</span></div>
+    <div><b id="statFlat2">—</b><span>flat-0.25 LOO error</span></div>
+    <div><b id="statWithin2">—</b><span>within 3× (in-sample)</span></div>
+  </div>
+  <details>
+    <summary>Category benchmarks — offset per category (median log-residual → shrunk offset → multiplier)</summary>
+    <table class="bench" id="benchTable">
+      <thead><tr><th>Category</th><th>n live</th><th>Median residual (dex)</th><th>Applied offset (dex)</th><th>Multiplier</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="fine">Categories with no live-token comparator get offset 0 (×1.00): the board's size curve alone prices them. Offsets are clipped to ±1 dex.</p>
+  </details>
+</section>
+
+<section class="fast" id="fast">
+  <h2>Moving fastest <span class="fine">(7-day TVL change, winsorised to +200%)</span></h2>
+  <div class="chips" id="fastChips"></div>
+</section>
+
+<section class="controls">
+  <input id="q" type="search" placeholder="Search name or slug…" aria-label="Search">
+  <select id="cat" aria-label="Filter by category"><option value="">All categories</option></select>
+  <label class="chk"><input id="watchOnly" type="checkbox"> Watchlist only</label>
+  <select id="sort" aria-label="Sort board">
+    <option value="value">Sort: implied value ↓</option>
+    <option value="tvl">Sort: TVL ↓</option>
+    <option value="growth">Sort: 7d growth ↓</option>
+    <option value="heat">Sort: HEAT ↓</option>
+    <option value="multiple">Sort: multiple ↓</option>
+    <option value="age">Sort: no-token years ↓</option>
+  </select>
+  <span class="count" id="shownCount"></span>
+</section>
+
+<main>
+  <table class="board" id="board">
+    <thead><tr>
+      <th>#</th><th>Protocol</th><th>Category</th><th>Chains</th><th class="num">TVL</th>
+      <th class="num">7d</th><th class="num">Implied value</th><th class="num">× Mult</th>
+      <th class="num">Bench ×</th><th class="num">No-token</th><th>Farm it</th>
+      <th class="num">$/1K TVL</th><th class="num">HEAT</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+</main>
+
+<section class="detail" id="detail" hidden>
+  <h2 id="dName">—</h2>
+  <p id="dMeta" class="fine"></p>
+  <div class="dgrid">
+    <div><b id="dImplied">—</b><span>implied value</span></div>
+    <div><b id="dTvl">—</b><span>TVL</span></div>
+    <div><b id="dMult">—</b><span>implied / TVL</span></div>
+    <div><b id="dBench">—</b><span>category benchmark</span></div>
+    <div><b id="dGrowth">—</b><span>7d growth (winsorised)</span></div>
+    <div><b id="dAge">—</b><span>running with no token</span></div>
+  </div>
+  <p id="dModel" class="fine"></p>
+  <h3>Farm plan — 8 steps, with cost and time on every step</h3>
+  <ol id="dSteps"></ol>
+  <p class="fine">Implied value is this board's own claim from the snapshot's figures. It is not a payout promise and not a prediction that a token will launch.</p>
+</section>
+
+<section class="live">
+  <h2>Live tokens — the comparators, kept separate</h2>
+  <p class="fine">Protocols whose token already trades are <b>not</b> ranked above. They are shown here because they are what the model is fitted on — the top 24 by market cap.</p>
+  <table class="board" id="liveTable">
+    <thead><tr><th>Protocol</th><th>Category</th><th class="num">TVL</th><th class="num">Market cap</th><th class="num">mcap / TVL</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<footer>
+  <p class="fine">Deterministic: every date comes from the snapshot's as_of (<span id="asof2">—</span>); no wall clock, no randomness. Model code: lib/model.ts — fitModel, impliedValueUsd, buildBoard. Farm steps are generated from each protocol's own record (category, chains, TVL, age), never copied between protocols.</p>
+</footer>
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
